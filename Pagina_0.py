@@ -59,7 +59,6 @@ def Cara_1(page: ft.Page):
             opcion_entrada = "2"
             with open('opcion_inicio_sesion.txt', 'w') as archivo:
                 archivo.write(opcion_entrada)
-
             page.window_destroy()
 
 
@@ -150,8 +149,10 @@ def Cara_1(page: ft.Page):
         if repite_con_reg_corr.value == "":
             repite_con_reg_corr.error_text = "No se ha confirmado la contraseña"
             error = 1
-        if contraseña_reg_corr != repite_con_reg_corr:
-            repite_con_reg_corr.error_text = "¡Las contrasñas son diferentes!"
+        if contraseña_reg_corr.value != repite_con_reg_corr.value:
+            repite_con_reg_corr.error_text = "¡Las contraseñas son diferentes!"
+            error = 1
+
         if error == 0:
             Terminar_Registro(None)
         page.update()
@@ -207,7 +208,7 @@ def Cara_1(page: ft.Page):
                                                                     on_click=Terminar_sesion_correo,bgcolor=ft.colors.RED_600, color=ft.colors.WHITE),
                                                   ft.ElevatedButton("Aceptar", on_click=Hacer_sesion_correo)])
     Usuario_inic_correo = ft.TextField(label="Nombre de Usuario o correo electronico", autofocus=True)
-    Contraseña_inic_correo = ft.TextField(label="Contraseña", )
+    Contraseña_inic_correo = ft.TextField(label="Contraseña", password=True, can_reveal_password=True)
     inicio_correo = ft.BottomSheet(
         ft.Container(
             ft.Column(
@@ -254,8 +255,8 @@ def Cara_1(page: ft.Page):
                   ft.ElevatedButton("Completar Registro", on_click=Hacer_Registro), ])
     usuario_reg_corr = ft.TextField(label="Nombre de Usuario", autofocus=True)
     correo_reg_corr = ft.TextField(label="Correo Electronico", )
-    contraseña_reg_corr = ft.TextField(label="Contraseña", )
-    repite_con_reg_corr = ft.TextField(label="Repite la contraseña", )
+    contraseña_reg_corr = ft.TextField(label="Contraseña", password=True, can_reveal_password=True)
+    repite_con_reg_corr = ft.TextField(label="Repite la contraseña", password=True, can_reveal_password=True)
 
     registro_correo = ft.BottomSheet(
         ft.Container(
