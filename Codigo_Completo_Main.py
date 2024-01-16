@@ -1,9 +1,6 @@
 import flet as ft
 import pygame
-import os
 from flet import  colors
-
-
 #                              Importar la animacion   y los datos restantes de esta pagina (botones para acceso)
 from Primera_interfaz import animacion
 from Pagina_0 import Cara_1
@@ -49,28 +46,11 @@ def main(page: ft.Page):
 
 
 
-    #                       Vamos a verificar si un usuario ya inicio sesion
-    nombre_archivo = 'Usuario.txt'
-    if os.path.exists(nombre_archivo):
-        with open(nombre_archivo, 'r') as archivo:
-            contenido = archivo.read()
 
-            if contenido !="Invitado" and contenido !="":
-                #print(contenido)
-
-
-                #                               ¡Aqui puedes agregar un boton o un saludo de bienvenida!
-
-                pygame.time.delay(500)
-                pygame.quit()
-
-                opcion_entrada = "3"
-                with open('opcion_inicio_sesion.txt', 'w') as archivo:
-                    archivo.write(opcion_entrada)
-                page.window_destroy()
 
     #                                        Si no se ha iniciado sesion previamente, añade los demas elementos
     # Añadir el contenido de la Cara 1
+
     Cara_1(page=page)
 
 

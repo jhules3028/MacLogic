@@ -1,8 +1,38 @@
 import flet as ft
-#                                                   Importa la Pagina Principal y la de Profesores
-
+import os
+import pygame
+#                                                   Importa la conexion en Mysql
+from Conexion_mysql import Conexion
 
 def Cara_1(page: ft.Page):
+    #                 Antes de ejecutar elr esto del codigo vamos a verificar si un usuario ya inicio sesion
+
+    nombre_archivo = 'Usuario.txt'
+    if os.path.exists(nombre_archivo):
+        with open(nombre_archivo, 'r') as archivo:
+            contenido = archivo.read()
+
+            if contenido != "Invitado" and contenido != "":
+                #    ¡Si ha encontrado un usuario lo saluda y lo manda al Menu!
+                class Data:
+                    def __init__(self) -> None:
+                        self.counter = 0
+
+                d = Data()
+                page.snack_bar = ft.SnackBar(
+                    ft.Text(f"Bienvenido  {contenido}", ))
+                page.snack_bar.open = True
+                d.counter += 1
+                page.update()
+                pygame.time.delay(1500)
+                pygame.quit()
+
+                opcion_entrada = "3"
+                with open('opcion_inicio_sesion.txt', 'w') as archivo:
+                    archivo.write(opcion_entrada)
+                page.window_destroy()
+
+    #          Si no ha encontrado un inicio de sesion ya existente, se ejecuta con normalidad y añade los objetos de la pagina
 
 
 
@@ -70,7 +100,7 @@ def Cara_1(page: ft.Page):
             content=ft.Text("Algunas funciones seran limitadas"),
             actions=[
                 ft.ElevatedButton("Continuar", on_click=invitado_mode),
-                ft.OutlinedButton("salir", on_click=cancelar_salir_INV),
+                ft.OutlinedButton("Cancelar", on_click=cancelar_salir_INV),
             ],
             actions_alignment=ft.MainAxisAlignment.END,
         )
@@ -129,32 +159,91 @@ def Cara_1(page: ft.Page):
         inicio_correo.open = False
         inicio_correo.update()
 
-    # Ranura de Iniciar un Registro con correo (2.1)
+    #               Ranura de Iniciar un Registro con correo (2.1)
     def Iniciar_Registro(e):
         registro_correo.open = True
         registro_correo.update()
 
+    #   Pequeña animacion mientars se hace el registro
+    Barra_carga= ft.AlertDialog(
+        modal=True,
+        title=ft.Text("Cargando datos, porfavor espere"),
+        content=ft.Text("Este proceso no deberia de tardar mucho tiempo"),
+        actions=[
+            ft.ProgressBar(width=400, color="amber", bgcolor="#eeeeee")
+        ],
+        actions_alignment=ft.MainAxisAlignment.END,
+    )
     def Hacer_Registro(e):
         # Vamos a declarar una variable llamada error, si esta vale 1 entonces se dejara al usuario terminar de corregir sus datos
-        error = 0
-        if usuario_reg_corr.value == "":
-            usuario_reg_corr.error_text = "No has puesto un usuario"
-            error = 1
+
+        error = 5
+        if usuario_reg_corr.value == "" or len(usuario_reg_corr.value)>=24:
+            usuario_reg_corr.error_text = "Nombre de usuario no valido"
+            error = error-1
         if correo_reg_corr.value == "":
             correo_reg_corr.error_text = "No se ha colocado un correo valido"
-            error = 1
-        if contraseña_reg_corr.value == "":
-            contraseña_reg_corr.error_text = "No se ha colocqado una contraseña"
-            error = 1
+            error = error-1
+        if contraseña_reg_corr.value == "" or len(contraseña_reg_corr.value)>=24:
+            contraseña_reg_corr.error_text = "No se ha colocado una contraseña valida"
+            error = error-1
         if repite_con_reg_corr.value == "":
             repite_con_reg_corr.error_text = "No se ha confirmado la contraseña"
-            error = 1
+            error = error-1
         if contraseña_reg_corr.value != repite_con_reg_corr.value:
             repite_con_reg_corr.error_text = "¡Las contraseñas son diferentes!"
-            error = 1
+            error = error-1
 
-        if error == 0:
-            Terminar_Registro(None)
+        if error == 5:
+            Usuario_creado=usuario_reg_corr.value
+            # Mostrar la barra de Carga
+            page.dialog = Barra_carga
+            Barra_carga.open = True
+            page.update()
+
+
+            opcion=1
+            resultado=Conexion(opcion,usuario_reg_corr.value,contraseña_reg_corr.value,correo_reg_corr.value)
+
+
+            class Data:
+                def __init__(self) -> None:
+                    self.counter = 0
+            d = Data()
+            # resultado=0 registro exitoso, resultado=1 algo ha pasado.
+            if resultado==0:
+
+                page.snack_bar = ft.SnackBar(ft.Text(f"Registro echo exitosamente, bienvenido {Usuario_creado}"))
+                page.snack_bar.open = True
+                d.counter += 1
+
+                Barra_carga.open = False
+                ranura_registro.open = False
+
+                page.update()
+                pygame.time.delay(2000)
+                pygame.quit()
+
+                #Cierra la pagina y manda al Menu guardando el usuario
+                opcion_entrada = "3"
+                with open('opcion_inicio_sesion.txt', 'w') as archivo:
+                    archivo.write(opcion_entrada)
+                with open('Usuario.txt', 'w') as archivo:
+                    archivo.write(Usuario_creado)
+                page.window_destroy()
+
+            if resultado==1:
+                page.snack_bar = ft.SnackBar(
+                    ft.Text(f"Lo sentimos, algo ha fallado con el registro :("))
+                page.snack_bar.open = True
+                d.counter += 1
+                Barra_carga.open = False
+                ranura_registro.open = False
+
+                page.update()
+
+
+
         page.update()
 
     def Terminar_Registro(e):
@@ -202,11 +291,13 @@ def Cara_1(page: ft.Page):
     page.overlay.append(ranura_Inicio_de_Sesion)
 
     #   Boton para iniciar sesion con correo (1.1)
+    def Inicio_Sesion(e):
+        Conexion(2,Usuario_inic_correo.value,Contraseña_inic_correo.value,Usuario_inic_correo.value)
     # Juntar dos botones
     botones_accion_inic_correo = ft.Row(controls=[ft.ElevatedButton("¿Olvidaste tu contraseña?"),
                                                   ft.ElevatedButton("Volver", icon=ft.icons.ARROW_BACK_IOS,
                                                                     on_click=Terminar_sesion_correo,bgcolor=ft.colors.RED_600, color=ft.colors.WHITE),
-                                                  ft.ElevatedButton("Aceptar", on_click=Hacer_sesion_correo)])
+                                                  ft.ElevatedButton("Aceptar", on_click=Inicio_Sesion)])
     Usuario_inic_correo = ft.TextField(label="Nombre de Usuario o correo electronico", autofocus=True)
     Contraseña_inic_correo = ft.TextField(label="Contraseña", password=True, can_reveal_password=True)
     inicio_correo = ft.BottomSheet(
@@ -253,6 +344,7 @@ def Cara_1(page: ft.Page):
     botones_accion_reg_correo = ft.Row(
         controls=[ft.ElevatedButton("Volver", icon=ft.icons.ARROW_BACK_IOS, on_click=Terminar_Registro,bgcolor=ft.colors.RED_600, color=ft.colors.WHITE),
                   ft.ElevatedButton("Completar Registro", on_click=Hacer_Registro), ])
+    nota_reg_corr=ft.Text("Aviso: El Usuario y Contraseña deben tener menos de 20 caracteres")
     usuario_reg_corr = ft.TextField(label="Nombre de Usuario", autofocus=True)
     correo_reg_corr = ft.TextField(label="Correo Electronico", )
     contraseña_reg_corr = ft.TextField(label="Contraseña", password=True, can_reveal_password=True)
@@ -262,6 +354,7 @@ def Cara_1(page: ft.Page):
         ft.Container(
             content=ft.Column(
                 controls=[
+                    nota_reg_corr,
                     usuario_reg_corr,
                     correo_reg_corr,
                     contraseña_reg_corr,

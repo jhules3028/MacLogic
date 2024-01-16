@@ -21,10 +21,13 @@ def inicio_sesion(page: ft.Page):
         page.snack_bar = ft.SnackBar(ft.Text(f"EL acceso se ha concluido exitosamente, porfavor cierra esta pagina "))
         page.snack_bar.open = True
         d.counter += 1
+
+        confirmacion.open = False
         page.update()
 
         #Ya que se ha iniciado sesion, puedes llamar al Menu Principal
         ft.app(target=Pagina_principal)
+
 
     def logingoogle(e):
         page.login(proovedor)
