@@ -135,18 +135,69 @@ def Cara_1(page: ft.Page):
         inicio_correo.open = True
         inicio_correo.update()
 
+        #   Pequeña animacion mientars se hace el registro
+    Barra_carga = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Cargando datos, porfavor espere"),
+            content=ft.Text("Este proceso no deberia de tardar mucho tiempo"),
+            actions=[
+                ft.ProgressBar(width=400, color="amber", bgcolor="#eeeeee")
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
     def Hacer_sesion_correo(e):
         # Vamos a declarar una variable llamada error, si esta vale 1 entonces se dejara al usuario terminar de corregir sus datos
-        error = 0
+        error = 2
         if Usuario_inic_correo.value == "" or Usuario_inic_correo.value == None:
             Usuario_inic_correo.error_text = "Coloque algun usuario valido"
-            error = 1
+            error = error-1
         if Contraseña_inic_correo.value == "":
             Contraseña_inic_correo.error_text = "No es una contraseña valida"
-            error = 1
-        if error == 0:
-            Terminar_sesion_correo(None)
+            error = error-1
         page.update()
+
+        if error == 2:
+            class Data:
+                def __init__(self) -> None:
+                    self.counter = 0
+
+            d = Data()
+            #SI no hay errores o cosas contas, procede a enviar los datos a DB4free
+            page.dialog = Barra_carga
+            Barra_carga.open = True
+            page.update()
+
+            resultado = Conexion(2, Usuario_inic_correo.value, Contraseña_inic_correo.value, Usuario_inic_correo.value)
+
+
+
+            if resultado == 0:
+                page.snack_bar = ft.SnackBar(
+                    ft.Text(f"Inicio de Sesion exitoso, bienvenido {Usuario_inic_correo.value}"))
+                page.snack_bar.open = True
+                d.counter += 1
+
+                Barra_carga.open = False
+                ranura_Inicio_de_Sesion.open = False
+                inicio_correo.open = False
+
+                page.update()
+                pygame.time.delay(2000)
+                pygame.quit()
+
+                # Cierra la pagina y manda al Menu guardando el usuario
+                page.window_destroy()
+
+            if resultado == 1:
+                page.snack_bar = ft.SnackBar(ft.Text(f"Ha ocurrido un error, porfavor verifique sus datos"))
+                page.snack_bar.open = True
+                d.counter += 1
+
+                Barra_carga.open = False
+                ranura_Inicio_de_Sesion.open = False
+                inicio_correo.open = False
+                page.update()
+
 
     def Terminar_sesion_correo(e):
         # Vamos a reiniciar todas las variables asi como lso avisos
@@ -164,16 +215,7 @@ def Cara_1(page: ft.Page):
         registro_correo.open = True
         registro_correo.update()
 
-    #   Pequeña animacion mientars se hace el registro
-    Barra_carga= ft.AlertDialog(
-        modal=True,
-        title=ft.Text("Cargando datos, porfavor espere"),
-        content=ft.Text("Este proceso no deberia de tardar mucho tiempo"),
-        actions=[
-            ft.ProgressBar(width=400, color="amber", bgcolor="#eeeeee")
-        ],
-        actions_alignment=ft.MainAxisAlignment.END,
-    )
+
     def Hacer_Registro(e):
         # Vamos a declarar una variable llamada error, si esta vale 1 entonces se dejara al usuario terminar de corregir sus datos
 
@@ -291,13 +333,13 @@ def Cara_1(page: ft.Page):
     page.overlay.append(ranura_Inicio_de_Sesion)
 
     #   Boton para iniciar sesion con correo (1.1)
-    def Inicio_Sesion(e):
-        Conexion(2,Usuario_inic_correo.value,Contraseña_inic_correo.value,Usuario_inic_correo.value)
+
+
     # Juntar dos botones
     botones_accion_inic_correo = ft.Row(controls=[ft.ElevatedButton("¿Olvidaste tu contraseña?"),
                                                   ft.ElevatedButton("Volver", icon=ft.icons.ARROW_BACK_IOS,
                                                                     on_click=Terminar_sesion_correo,bgcolor=ft.colors.RED_600, color=ft.colors.WHITE),
-                                                  ft.ElevatedButton("Aceptar", on_click=Inicio_Sesion)])
+                                                  ft.ElevatedButton("Aceptar", on_click=Hacer_sesion_correo)])
     Usuario_inic_correo = ft.TextField(label="Nombre de Usuario o correo electronico", autofocus=True)
     Contraseña_inic_correo = ft.TextField(label="Contraseña", password=True, can_reveal_password=True)
     inicio_correo = ft.BottomSheet(
